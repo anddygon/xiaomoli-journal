@@ -424,7 +424,7 @@ export function createEntryController({getEvents, getCatalog, getParent, getScop
   }
   // The primary action uses one explicit save path. Native dialog-form submission
   // may dismiss or suppress validation before an asynchronous IndexedDB write.
-  submit.addEventListener('click',submitRecord);
+  submit.addEventListener('click',event=>{event.preventDefault();void submitRecord();});
   form.addEventListener('submit',event=>{event.preventDefault();void submitRecord();});
   cancel.type = 'button';
   cancel.onclick = () => {if (!saving) dialog.close();};
