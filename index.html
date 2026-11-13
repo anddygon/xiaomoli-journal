@@ -153,7 +153,7 @@
     <p class="device-note">只将缺少的记录和常用项目补到这台设备，保留已有宝宝资料。</p>
     <div class="dialog-controls"><button type="button" id="cancelRestore" autofocus>取消</button><button type="button" id="confirmRestore" class="accept">确认恢复</button></div>
   </dialog>
-  <dialog id="entryDialog" aria-labelledby="dialogTitle"><form method="dialog" id="entryForm"><div class="dialog-grip"></div><div class="dialog-head"><h2 id="dialogTitle">添加记录</h2><button type="button" class="icon-button dialog-close" id="cancelEntry" autofocus>取消</button></div><div id="formFields"></div><button class="primary" id="submitEntry" type="submit">保存记录</button></form></dialog>
+  <dialog id="entryDialog" aria-labelledby="dialogTitle"><form id="entryForm" novalidate><div class="dialog-grip"></div><div class="dialog-head"><h2 id="dialogTitle">添加记录</h2><button type="button" class="icon-button dialog-close" id="cancelEntry" autofocus>取消</button></div><div id="formFields"></div><button class="primary" id="submitEntry" type="button">保存记录</button></form></dialog>
   <dialog id="composeDialog"><div class="dialog-head"><h2>记一笔</h2><button type="button" class="icon-button" id="composeClose" aria-label="关闭"><span data-icon="close"></span></button></div><div id="composeList" class="compose-list"></div></dialog>
   <dialog id="photoDialog"><div class="dialog-head"><h2>记录照片</h2><button type="button" id="photoClose" class="icon-button dialog-close" aria-label="关闭照片"><span data-icon="close"></span></button></div><img id="photoFull" alt="记录所附照片"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>

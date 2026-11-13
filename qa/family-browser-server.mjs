@@ -48,6 +48,14 @@ async function handle(req,res) {
 const server=createServer((req,res)=>{
   if(/^\/qa-phone-[ab]-[a-z0-9]+\/fixture-network\.js$/.test(req.url)){
     res.writeHead(200,{'content-type':'text/javascript','cache-control':'no-store'});res.end(`
+      window.qaEntryEvents=[];
+      for(const name of ['click','submit','invalid','close','change','error','unhandledrejection']){
+        window.addEventListener(name,e=>{
+          if(!e.target?.closest?.('#entryDialog') && name!=='error' && name!=='unhandledrejection')return;
+          window.qaEntryEvents.push([name,e.target?.name||e.target?.id||'',e.message||'']);
+          if(window.qaEntryEvents.length>20)window.qaEntryEvents.shift();
+        },true);
+      }
       const originalFetch=window.fetch.bind(window);
       window.fetch=(...args)=>{
         const url=new URL(args[0],location.href);

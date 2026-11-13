@@ -407,8 +407,7 @@ export function createEntryController({getEvents, getCatalog, getParent, getScop
     return event;
   }
   form.addEventListener('change', () => {if (!dialog.open) return; recalc?.(); tell('');});
-  form.onsubmit = async ev => {
-    ev.preventDefault();
+  async function submitRecord() {
     if (saving || processing || !form.reportValidity()) return;
     saving = true; setBusy();
     try {
@@ -422,7 +421,11 @@ export function createEntryController({getEvents, getCatalog, getParent, getScop
     } finally {
       saving = false; setBusy();
     }
-  };
+  }
+  // The primary action uses one explicit save path. Native dialog-form submission
+  // may dismiss or suppress validation before an asynchronous IndexedDB write.
+  submit.addEventListener('click',submitRecord);
+  form.addEventListener('submit',event=>{event.preventDefault();void submitRecord();});
   cancel.type = 'button';
   cancel.onclick = () => {if (!saving) dialog.close();};
   dialog.addEventListener('cancel', event => { if (saving) event.preventDefault(); });

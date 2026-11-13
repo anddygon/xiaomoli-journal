@@ -35,6 +35,18 @@ def test_image():
 def exercise(page, context, host):
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
+    page.add_init_script("""(() => {
+      window.qaEntryEvents=[];
+      for(const name of ['click','submit','invalid','close','cancel','change','error','unhandledrejection']){
+        document.addEventListener(name,e=>{
+          const target=e.target;
+          if(!target.closest?.('#entryDialog') && name!=='error' && name!=='unhandledrejection')return;
+          const trace=window.qaEntryEvents;
+          trace.push([name,target.id||target.name||target.tagName,e.defaultPrevented]);
+          if(trace.length>20)trace.shift();
+        },true);
+      }
+    })();""")
     page.clock.set_fixed_time("2026-08-11T12:00:00+08:00")
     page.goto(host + "/xiaomoli-journal/")
     expect(page.locator("body")).to_have_attribute("data-locked", "false")
@@ -214,6 +226,8 @@ def main():
                     context = browser.new_context(viewport={"width":390,"height":844},is_mobile=True,has_touch=True,timezone_id="Asia/Shanghai",accept_downloads=True)
                     page = context.new_page()
                     page.set_default_timeout(15000)
+                    page_failures = []
+                    page.on("pageerror",lambda exc: page_failures.append(str(exc)))
                     try:
                         exercise(page,context,f"http://127.0.0.1:{server.server_port}")
                     except Exception:
@@ -222,15 +236,20 @@ def main():
                             const dialog=document.querySelector('dialog[open]');
                             const fields=[...(dialog?.querySelectorAll('input,select,textarea') || [])];
                             return {clock:new Date().toString(), title:dialog?.querySelector('h2')?.textContent,
-                                status:dialog?.querySelector('[role=status]')?.textContent,
+                                open:dialog?.open, submitTrace:window.qaEntryEvents,
+                                formValidity:dialog?.querySelector('form')?.checkValidity(),
+                                status:[...(dialog?.querySelectorAll('[role=status]')||[])].map(x=>x.textContent),
+                                pageTime:Date.now(), ownRows:document.querySelector('#homeTimeline')?.textContent,
+                                toast:document.querySelector('#toast')?.textContent,
                                 selectedDate:document.querySelector('#dateFilter')?.value,
                                 summary:document.querySelector('#timelineSummary')?.textContent,
                                 form:fields.filter(f=>!['password','file'].includes(f.type) && f.closest('#entryForm'))
                                   .map(f=>({name:f.name,type:f.type,value:f.value,enabled:!f.disabled,checked:f.checked,
                                     invalid:f.willValidate && !f.validity.valid,reason:f.validationMessage})),
-                                submitDisabled:dialog?.querySelector('[type=submit]')?.disabled
+                                submitDisabled:dialog?.querySelector('#submitEntry,[type=submit]')?.disabled
                             };
                         }""")
+                        details["errors"] = page_failures
                         print("UI diagnostics", json.dumps(details, ensure_ascii=False), flush=True)
                         raise
                     print("PASS",engine_name,"mobile entry, cancellation, cross-midnight timeline, timers, edit/delete/undo, photo, restore and offline reopen.")

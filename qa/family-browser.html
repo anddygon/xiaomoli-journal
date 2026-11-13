@@ -8,7 +8,12 @@ async function until(fn,description,ms=25000){
  const end=Date.now()+ms;
  while(Date.now()<end){if(await fn())return;await wait(100);}
  const messages=[a,b].map(frame=>{const d=frame.contentDocument;
-   return [d?.querySelector('#gitError')?.textContent,d?.querySelector('#gitStatus')?.textContent,d?.querySelector('#openMessage')?.textContent].filter(Boolean).join(' / ');});
+   const entry=d?.querySelector('#entryDialog');
+   return JSON.stringify({network:d?.querySelector('#gitStatus')?.textContent,entryOpen:entry?.open,
+      entryMessages:[...(entry?.querySelectorAll('[role=status]')||[])].map(p=>p.textContent),
+      invalid:[...(entry?.querySelectorAll(':invalid')||[])].map(e=>e.name||e.tagName),
+      toast:d?.querySelector('#toast')?.textContent,recent:d?.querySelector('#homeTimeline')?.textContent,
+      trace:frame.contentWindow?.qaEntryEvents});});
  throw Error(description+'；'+messages.join(' | '));
 }
 const report=s=>log.textContent+=s+'\n';
