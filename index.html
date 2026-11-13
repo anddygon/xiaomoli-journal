@@ -1,62 +1,162 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f5f4ee"><link rel="manifest" href="manifest.webmanifest"><title>小茉莉日记</title>
-<style>
-:root{--bg:#f5f4ee;--paper:#fffefa;--ink:#2d4435;--sage:#66836b;--muted:#899489;--line:#e9ebe3;--red:#b96d62}*{box-sizing:border-box}body{margin:0 auto;max-width:720px;padding:env(safe-area-inset-top) 18px calc(100px + env(safe-area-inset-bottom));background:var(--bg);color:var(--ink);font:15px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}header{display:flex;justify-content:space-between;align-items:center;padding:20px 2px}h1{font:600 24px Georgia,serif;margin:5px 0}small,.muted{color:var(--muted)}.hero{padding:23px;border-radius:24px;background:linear-gradient(130deg,#e8efe4,#f3efe5);margin-bottom:22px}.hero h2{font:600 22px Georgia,serif;margin:12px 0 5px}.stats,.quick,.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stats article,.quick button,.panel,.tiles button{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:15px}.stats article{display:grid;gap:7px}.stats strong{font-size:20px}.quick{grid-template-columns:repeat(3,1fr)}button{cursor:pointer}.quick button{min-height:88px;color:var(--sage);font-size:22px}.quick span{display:block;font-size:12px;margin-top:7px;color:var(--ink)}.section{margin:22px 2px 11px;font-weight:600;display:flex;justify-content:space-between;align-items:center}.item{display:grid;grid-template-columns:48px 14px 1fr;gap:8px;padding:13px 0;border-bottom:1px solid #eee}.item:last-child{border:0}.time{font-size:12px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:50%;background:#9caf98;margin:4px auto}.detail{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}.actions{display:flex;gap:14px;justify-content:flex-end;margin-top:8px}.actions button,.linkbtn{border:0;background:none;color:var(--sage);font-size:12px;padding:4px}.actions .danger{color:var(--red)}nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;background:#fffefaee;backdrop-filter:blur(16px);padding:12px 5px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);max-width:720px;margin:auto}nav button{border:0;background:none;color:var(--sage);font-size:12px}.page{display:none}.page.active{display:block}.tiles button{text-align:left;color:var(--sage);font-size:21px;min-height:94px}.tiles b{display:block;color:var(--ink);font-size:13px;margin-top:7px}.tiles small{display:block;font-size:10px;margin-top:3px}dialog{border:0;border-radius:22px 22px 0 0;width:min(100%,720px);margin:auto auto 0;padding:22px;background:var(--paper);color:var(--ink);max-height:88vh;overflow:auto}dialog::backdrop{background:#25352b77}.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.dialog-head h2{font-size:19px;margin:0}.close-dialog{width:34px;height:34px;border:0;border-radius:50%;background:#eef1e9;color:#536b56;font-size:23px}label{display:block;margin:13px 0;font-size:12px;color:var(--muted)}input,select,textarea{display:block;width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;margin-top:6px;background:#fafaf6;color:var(--ink);font:14px inherit}.primary{background:var(--sage);color:white;border:0;border-radius:13px;padding:14px;width:100%;margin-top:12px}.secondary{background:#eef1e9;color:#526d56;border:0;border-radius:12px;padding:12px;width:100%;margin-top:8px}.row{display:flex;gap:9px}.row>*{flex:1}.photo{max-width:100%;max-height:180px;border-radius:12px;margin-top:8px}.empty{text-align:center;color:var(--muted);padding:22px 8px;font-size:13px}.tag{display:inline-block;background:#eef2e9;color:#607b63;padding:4px 8px;border-radius:9px;font-size:10px}.mutedbox{background:#f2f3ed;padding:12px;border-radius:12px;color:#788578;font-size:12px;line-height:1.6}
-</style></head><body>
-<header><div><small>OUR LITTLE WORLD</small><h1>小茉莉日记 🌼</h1><small id="age">记录成长的每一天</small></div><button id="profileBtn" class="close-dialog">☺</button></header>
-<main>
-<section id="home" class="page active"><div class="hero"><small id="today"></small><h2>今天也要快乐长大</h2><p class="muted">每一份小小记录，都是爱的陪伴。</p><b id="count">0 条记录</b>　<small id="last">最近记录 --:--</small></div>
-<div class="section">今日概览 <small>自动统计</small></div><div class="stats"><article>🍼<strong id="feeds">0 次</strong><small id="ml">奶量 0 ml</small></article><article>💤<strong id="sleeps">0 分钟</strong><small>睡眠时长</small></article><article>💧<strong id="pees">0 次</strong><small>尿尿</small></article><article>🌱<strong id="poops">0 次</strong><small>便便</small></article></div>
-<div class="section">快速记录 <small>一键开始 / 记录</small></div><div class="quick"><button data-type="喂奶">🍼<span>喂奶</span></button><button data-type="睡眠">🌙<span>睡眠</span></button><button data-type="尿尿">💧<span>尿尿</span></button><button data-type="便便">🌱<span>便便</span></button><button data-type="用药">💊<span>用药</span></button><button data-type="营养品">🧡<span>营养品</span></button></div>
-<div class="section">进行中的记录</div><div class="panel" id="active"><div class="empty">暂无进行中的记录</div></div>
-<div class="section">最近记录 <button class="linkbtn" data-tab="timeline">查看全部 →</button></div><div class="panel" id="recent"></div></section>
-<section id="timeline" class="page"><div class="section">照护时间线 <input id="filterDate" type="date"></div><div class="panel" id="timelineList"></div></section>
-<section id="health" class="page"><h2>健康与成长</h2><div class="tiles"><button data-type="用药">💊<b>用药记录</b><small>药品、剂量、时间</small></button><button data-type="营养品">🧡<b>营养品</b><small>益生菌、维生素等</small></button><button data-type="体温">🌡️<b>体温</b><small>测量值与部位</small></button><button data-type="疫苗">💉<b>疫苗</b><small>接种日期与备注</small></button><button data-type="成长测量">📏<b>成长测量</b><small>体重、身长、头围</small></button></div><div class="section">常用项目</div><div class="panel" id="catalog"></div><div class="section">健康记录</div><div class="panel" id="healthList"></div></section>
-<section id="profile" class="page"><h2>宝宝档案</h2><div class="panel"><div class="row"><label>昵称<input id="pName"></label><label>性别<select id="pSex"><option value="">未填写</option><option>女</option><option>男</option></select></label></div><div class="row"><label>出生日期<input id="pBirth" type="date"></label><label>出生时间<input id="pBirthTime" type="time"></label></div><div class="row"><label>出生体重（g）<input id="pWeight" type="number"></label><label>出生身长（cm）<input id="pLength" type="number" step=".1"></label><label>出生头围（cm）<input id="pHead" type="number" step=".1"></label></div><button class="primary" id="saveProfile">保存档案</button></div><div class="section">数据管理</div><div class="panel"><button class="secondary" id="exportBtn">导出完整备份（含照片）</button><label>从备份恢复<input type="file" id="importFile" accept="application/json"></label><div class="mutedbox">当前为单机版本，数据保存在本机浏览器。清除网站数据或更换手机前，请先导出备份。尚未开启夫妻云同步。</div></div><div class="section">记录人</div><div class="panel row"><button class="secondary" data-actor="爸爸">爸爸</button><button class="secondary" data-actor="妈妈">妈妈</button></div></section>
-</main><nav><button data-tab="home">⌂<br>首页</button><button data-tab="timeline">▤<br>时间线</button><button data-tab="health">♡<br>健康成长</button><button data-tab="profile">☺<br>宝宝档案</button></nav>
-<dialog id="entry"><form id="entryForm"><div class="dialog-head"><h2 id="entryTitle">添加记录</h2><button type="button" class="close-dialog">×</button></div><div id="fields"></div><button class="primary" type="submit">保存记录</button><button class="secondary" type="button" id="cancelEntry">取消</button></form></dialog>
-<script>
-const DB='xiaomoli-v2',STORE='records',PKEY='xiaomoli-profile',AKEY='xiaomoli-actor';let db,records=[],profile={},actor=localStorage.getItem(AKEY)||'爸爸',currentType='',editing=null,photoData=null,undoStack=[];
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],names={'喂奶':'🍼','睡眠':'🌙','尿尿':'💧','便便':'🌱','用药':'💊','营养品':'🧡','体温':'🌡️','疫苗':'💉','成长测量':'📏'};
-const req=indexedDB.open(DB,1);req.onupgradeneeded=()=>{let d=req.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id'});};req.onsuccess=async()=>{db=req.result;await load();render();};req.onerror=()=>alert('本机数据库无法打开，请更换浏览器或检查存储空间。');
-function store(mode='readonly'){return db.transaction(STORE,mode).objectStore(STORE)}function all(){return new Promise((res,rej)=>{let r=store().getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}async function load(){records=await all();profile=JSON.parse(localStorage.getItem(PKEY)||'{}');fillProfile()}
-function put(x){return new Promise((res,rej)=>{let r=store('readwrite').put(x);r.onsuccess=res;r.onerror=()=>rej(r.error)}).then(async()=>{records=await all();render()})}function del(id){return new Promise((res,rej)=>{let r=store('readwrite').delete(id);r.onsuccess=res;r.onerror=()=>rej(r.error)}).then(async()=>{records=await all();render()})}
-function day(d=new Date()){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}function nowTime(){return new Date().toTimeString().slice(0,5)}function mins(a,b=Date.now()){return Math.max(0,Math.round((b-a)/60000))}
-function showTab(id){$$('.page').forEach(x=>x.classList.toggle('active',x.id===id));}$$('[data-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
-function closeDialogs(){ $$('dialog[open]').forEach(d=>d.close())}$$('dialog').forEach(d=>{d.querySelector('.close-dialog')?.addEventListener('click',()=>d.close());d.addEventListener('click',e=>{if(e.target===d)d.close()})});$('#cancelEntry').onclick=closeDialogs;
-function field(label,name,type='text',value='',attrs=''){return '<label>'+label+'<input name="'+name+'" type="'+type+'" value="'+String(value??'').replace(/"/g,'&quot;')+'" '+attrs+'></label>'}
-function select(label,name,opts,def){return '<label>'+label+'<select name="'+name+'">'+opts.map(o=>'<option '+(o===def?'selected':'')+'>'+o+'</option>').join('')+'</select></label>'}
-function openEntry(type,item=null){currentType=type;editing=item;photoData=item?.photo||null;$('#entryTitle').textContent=(item?'编辑':'记录')+type;let x=item?.data||{},f=field('发生时间','time','time',item?.time||nowTime());
-if(type==='喂奶')f+=select('喂养方式','method',['母乳','奶粉','混合喂养'],x.method||'母乳')+select('母乳侧别','side',['双侧','左侧','右侧'],x.side||'双侧')+field('喂养时长（分钟）','duration','number',x.duration||'','min="0"')+field('奶量（ml）','volume','number',x.volume||'','min="0"');
-if(type==='睡眠')f+='<p class="muted">保存即记录一次睡眠；也可从首页开始计时。</p>';
-if(type==='尿尿')f+=select('尿量','amount',['正常','较少','较多'],x.amount||'正常');
-if(type==='便便')f+=select('颜色','color',['黄色','黄绿色','绿色','棕色','其他'],x.color||'黄色')+select('性状','texture',['糊状','成形','稀便','水样'],x.texture||'糊状')+'<label>照片（选填）<input type="file" name="photo" accept="image/*" capture="environment"></label><img id="preview" class="photo" '+(photoData?'src="'+photoData+'"':'hidden')+'>';
-if(type==='用药'||type==='营养品')f+=field('名称','name','text',x.name||'','required')+field('剂量','dose','text',x.dose||'')+field('单位','unit','text',x.unit||'')+field('备注','note','text',x.note||'')+'<label><input type="checkbox" name="remember" '+(x.remember?'checked':'')+'> 保存为常用项目</label>';
-if(type==='体温')f+=field('体温（℃）','value','number',x.value||'','step=".1"')+select('测量部位','site',['腋下','耳温','额温','其他'],x.site||'腋下');
-if(type==='疫苗')f+=field('疫苗名称','name','text',x.name||'','required')+field('剂次 / 备注','note','text',x.note||'');
-if(type==='成长测量')f+=field('体重（g）','weight','number',x.weight||'')+field('身长（cm）','length','number',x.length||'','step=".1"')+field('头围（cm）','head','number',x.head||'','step=".1"');
-$('#fields').innerHTML=f;$('#entry').showModal();let file=$('[name=photo]');if(file)file.onchange=async()=>{if(file.files[0]){photoData=await compress(file.files[0]);$('#preview').src=photoData;$('#preview').hidden=false}}
-}
-async function compress(file){let bmp=await createImageBitmap(file),scale=Math.min(1,1600/Math.max(bmp.width,bmp.height)),c=document.createElement('canvas');c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return new Promise(resolve=>c.toBlob(b=>{let fr=new FileReader();fr.onload=()=>resolve(fr.result);fr.readAsDataURL(b)},'image/jpeg',.78))}
-$$('[data-type]').forEach(b=>b.onclick=()=>openEntry(b.dataset.type));
-$('#entryForm').onsubmit=async e=>{e.preventDefault();let fd=new FormData(e.target),data=Object.fromEntries(fd.entries());delete data.photo;data.remember=fd.has('remember');let detail='';
-if(currentType==='喂奶')detail=[data.method,data.side,data.duration&&data.duration+'分钟',data.volume&&data.volume+'ml'].filter(Boolean).join(' · ');
-else if(currentType==='便便')detail=[data.color,data.texture].join(' · ');
-else if(currentType==='尿尿')detail='尿量：'+data.amount;
-else if(currentType==='睡眠')detail='睡眠记录';
-else detail=[data.name,data.dose,data.unit,data.value&&data.value+'℃',data.weight&&data.weight+'g',data.length&&data.length+'cm',data.head&&data.head+'cm',data.site,data.note].filter(Boolean).join(' · ');
-let item={id:editing?.id||crypto.randomUUID(),type:currentType,date:day(),time:data.time,detail,data,photo:photoData||null,actor,createdAt:editing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),status:'local'};await put(item);$('#entry').close();e.target.reset();photoData=null};
-function render(){let d=day(),a=records.filter(x=>x.date===d).sort((x,y)=>y.time.localeCompare(x.time)),feed=a.filter(x=>x.type==='喂奶'),sleep=a.filter(x=>x.type==='睡眠');$('#count').textContent=a.length+' 条记录';$('#last').textContent='最近记录 '+(a[0]?.time||'--:--');$('#feeds').textContent=feed.length+' 次';$('#ml').textContent='奶量 '+feed.reduce((s,x)=>s+Number(x.data.volume||0),0)+' ml';$('#pees').textContent=a.filter(x=>x.type==='尿尿').length+' 次';$('#poops').textContent=a.filter(x=>x.type==='便便').length+' 次';$('#sleeps').textContent=sleep.length+' 次';
-let active=records.filter(x=>x.active);$('#active').innerHTML=active.length?active.map(x=>'<div class="item"><div class="time">'+x.time+'</div><div class="dot"></div><div><b>'+names[x.type]+' '+x.type+'进行中</b><div class="detail">'+x.detail+' · '+mins(x.startedAt)+' 分钟</div><div class="actions"><button data-finish="'+x.id+'">结束</button></div></div></div>').join(''):'<div class="empty">暂无进行中的记录</div>';
-$('#recent').innerHTML=timeline(a.slice(0,5));let date=$('#filterDate').value||d;$('#timelineList').innerHTML=timeline(records.filter(x=>x.date===date));$('#healthList').innerHTML=timeline(records.filter(x=>['用药','营养品','体温','疫苗','成长测量'].includes(x.type)));let meds=records.filter(x=>['用药','营养品'].includes(x.type)&&x.data.remember);$('#catalog').innerHTML=meds.length?[...new Map(meds.map(x=>[x.type+x.data.name,x])).values()].map(x=>'<div class="item"><div>'+names[x.type]+'</div><div></div><div><b>'+x.data.name+'</b><div class="detail">'+(x.data.dose||'')+(x.data.unit||'')+'</div><button class="linkbtn" data-repeat="'+x.id+'">再次记录</button></div></div>').join(''):'<div class="empty">首次记录时勾选保存为常用项目</div>';
-$$('[data-finish]').forEach(b=>b.onclick=async()=>{let x=records.find(x=>x.id===b.dataset.finish);x.active=false;x.endTime=nowTime();x.detail+=' · '+mins(x.startedAt)+' 分钟';await put(x)});$$('[data-repeat]').forEach(b=>b.onclick=()=>{let x=records.find(x=>x.id===b.dataset.repeat);openEntry(x.type,{...x,id:null,time:nowTime()})});
-}
-function timeline(list){return list.length?list.map(x=>'<div class="item"><div class="time">'+x.time+'</div><div class="dot"></div><div><b>'+names[x.type]+' '+x.type+'</b><div class="detail">'+x.detail+' · '+x.actor+'</div>'+(x.photo?'<img class="photo" src="'+x.photo+'">':'')+'<div class="actions"><button data-edit="'+x.id+'">编辑</button><button class="danger" data-delete="'+x.id+'">删除</button></div></div></div>').join(''):'<div class="empty">这一天还没有记录</div>'}
-document.addEventListener('click',async e=>{let b=e.target.closest('[data-edit],[data-delete]');if(!b)return;let x=records.find(x=>x.id===(b.dataset.edit||b.dataset.delete));if(!x)return;if(b.dataset.edit)openEntry(x.type,x);else if(confirm('确定删除这条记录？关联照片也会一起删除。')){await del(x.id);undoStack.push(x);let t=document.createElement('div');t.className='mutedbox';t.innerHTML='记录已删除　<button id="undo" class="linkbtn">撤销</button>';$('#recent').prepend(t);$('#undo').onclick=async()=>{await put(x);t.remove()}}});
-$('#filterDate').value=day();$('#filterDate').onchange=render;$('#today').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
-$$('[data-actor]').forEach(b=>b.onclick=()=>{actor=b.dataset.actor;localStorage.setItem(AKEY,actor);alert('当前记录人：'+actor)});
-function fillProfile(){for(let [id,k] of [['pName','name'],['pSex','sex'],['pBirth','birth'],['pBirthTime','birthTime'],['pWeight','weight'],['pLength','length'],['pHead','head']])$('#'+id).value=profile[k]||'';$('#age').textContent=profile.name?(profile.name+' · '+(profile.birth||'')):'记录成长的每一天'}
-$('#profileBtn').onclick=()=>showTab('profile');$('#saveProfile').onclick=()=>{profile={name:$('#pName').value,sex:$('#pSex').value,birth:$('#pBirth').value,birthTime:$('#pBirthTime').value,weight:$('#pWeight').value,length:$('#pLength').value,head:$('#pHead').value};localStorage.setItem(PKEY,JSON.stringify(profile));fillProfile();alert('宝宝档案已保存')};
-$('#exportBtn').onclick=()=>{let blob=new Blob([JSON.stringify({version:2,profile,records},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='小茉莉日记备份-'+day()+'.json';a.click();URL.revokeObjectURL(a.href)};
-$('#importFile').onchange=async e=>{let file=e.target.files[0];if(!file)return;try{let v=JSON.parse(await file.text());if(!Array.isArray(v.records))throw Error('备份格式不正确');if(!confirm('将导入 '+v.records.length+' 条记录，遇到相同 ID 会覆盖。继续吗？'))return;profile=v.profile||profile;localStorage.setItem(PKEY,JSON.stringify(profile));for(let x of v.records)await put(x);await load();render();alert('恢复完成')}catch(err){alert('恢复失败：'+err.message)}e.target.value=''};
-render();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f8f7f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="description" content="小茉莉的家庭照护日记">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./entry.css">
+  <title>小茉莉日记</title>
+</head>
+<body data-locked="true">
+  <div id="openStatus" role="status">
+    <p id="openMessage">正在打开本机日记…</p>
+    <button type="button" id="retryOpen" hidden>重新打开</button>
+  </div>
+  <header class="masthead">
+    <div class="brand"><span class="brand-seal" data-icon="flower"></span><span>小茉莉日记</span></div>
+    <button id="profileShortcut" class="top-profile" aria-label="打开宝宝档案"><span data-icon="profile"></span><span id="actorName">宝宝档案</span></button>
+  </header>
+  <nav id="tabs" aria-label="主导航">
+    <button type="button" class="selected" data-tab="home"><span data-icon="home"></span><span>首页</span></button>
+    <button type="button" data-tab="timeline"><span data-icon="timeline"></span><span>时间线</span></button>
+    <button type="button" data-tab="health"><span data-icon="health"></span><span>健康成长</span></button>
+    <button type="button" data-tab="profile"><span data-icon="profile"></span><span>宝宝档案</span></button>
+  </nav>
+  <main class="journal">
+    <p class="local-notice" id="gitNotice">仅存本机</p>
+    <section class="page active" id="home" aria-labelledby="homeTitle">
+      <div class="page-title"><h1 id="homeTitle">今日照护</h1><span class="title-meta" id="age"></span></div>
+      <div class="hero">
+        <div class="hero-inner"><div class="hero-date"><span class="hero-dash"></span><time id="today"></time></div>
+        <h2 id="heroTitle">小茉莉的一天</h2><p id="heroDetail">今天还没有照护记录</p></div>
+      </div>
+      <div class="summary-strip" aria-label="今日概览">
+        <div><span class="metric-label">喂养</span><strong id="feedCount">0 次</strong><span class="metric-hint" id="feedVolume">奶量 0 ml</span></div>
+        <div><span class="metric-label">睡眠</span><strong id="sleepTotal">0 分钟</strong></div>
+        <div><span class="metric-label">尿尿</span><strong id="peeCount">0 次</strong></div>
+        <div><span class="metric-label">便便</span><strong id="poopCount">0 次</strong></div>
+      </div>
+      <div class="home-columns">
+        <section class="quick-section" aria-labelledby="quickTitle">
+          <div class="section-heading"><h2 id="quickTitle">快速记录</h2><button class="text-link" data-compose>补记 / 奶粉 <span data-icon="plus"></span></button></div>
+          <div class="primary-actions">
+            <button data-action="feed" class="lead-action" aria-label="喂奶"><span class="lead-icon" data-icon="feed"></span><span class="lead-copy"><b class="action-label">喂奶</b><small>母乳 · 双侧</small></span><span class="lead-sign" data-icon="plus"></span></button>
+            <button data-action="sleep" class="lead-action sleep" aria-label="睡眠"><span class="lead-icon" data-icon="sleep"></span><span class="lead-copy"><b class="action-label">睡眠</b><small>入睡与醒来</small></span><span class="lead-sign" data-icon="plus"></span></button>
+          </div>
+          <div class="minor-actions">
+            <button data-action="pee"><span class="round-icon pee" data-icon="pee"></span><b>尿尿</b></button>
+            <button data-action="poop"><span class="round-icon poop" data-icon="poop"></span><b>便便</b></button>
+            <button data-action="med"><span class="round-icon med" data-icon="med"></span><b>用药</b></button>
+            <button data-action="supplement"><span class="round-icon supplement" data-icon="supplement"></span><b>益生菌等</b></button>
+          </div>
+        </section>
+        <section class="recent-section" aria-labelledby="recentTitle">
+          <div class="section-heading"><h2 id="recentTitle">最近记录</h2><button class="text-link" data-goto="timeline">查看全部 <span data-icon="arrow"></span></button></div>
+          <div id="homeTimeline" class="entries"></div>
+        </section>
+      </div>
+      <span id="eventCount" hidden></span><span id="lastEvent" hidden></span>
+    </section>
+    <section class="page" id="timeline" aria-labelledby="timelineTitle">
+      <div class="page-title"><h1 id="timelineTitle">照护时间线</h1><label class="date-trigger"><span data-icon="calendar"></span>选择日期<input id="dateFilter" type="date" aria-label="选择日期"></label></div>
+      <div class="week-panel">
+        <div class="week-head"><h2 id="timelineHeading">本周</h2><div class="week-controls"><button type="button" class="text-link" id="backToday">今天</button><button type="button" class="icon-button" id="prevWeek" aria-label="上一周"><span data-icon="prev"></span></button><button type="button" class="icon-button" id="nextWeek" aria-label="下一周"><span data-icon="next"></span></button></div></div>
+        <div id="weekStrip" class="week-strip" role="group" aria-label="日期"></div>
+      </div>
+      <div class="section-heading timeline-section-heading"><h2>当天记录</h2><button class="text-link" data-compose>记一笔 <span data-icon="plus"></span></button></div>
+      <p id="timelineSummary" class="day-summary"></p>
+      <div id="timelineList" class="entries"></div>
+    </section>
+    <section class="page" id="health" aria-labelledby="healthTitle">
+      <div class="page-title"><h1 id="healthTitle">健康成长</h1></div>
+      <div class="health-actions">
+        <button data-action="med"><span class="round-icon med" data-icon="med"></span><b>用药</b><span data-icon="next"></span></button>
+        <button data-action="supplement"><span class="round-icon supplement" data-icon="supplement"></span><b>营养品</b><span data-icon="next"></span></button>
+        <button data-action="temperature"><span class="round-icon temperature" data-icon="temperature"></span><b>体温</b><span data-icon="next"></span></button>
+        <button data-action="vaccine"><span class="round-icon vaccine" data-icon="vaccine"></span><b>疫苗</b><span data-icon="next"></span></button>
+        <button data-action="growth"><span class="round-icon growth" data-icon="growth"></span><b>成长测量</b><span data-icon="next"></span></button>
+      </div>
+      <div class="health-columns"><section><div class="section-heading"><h2>常用项目</h2></div><div id="catalog" class="catalog"></div></section>
+      <section><div class="section-heading"><h2>健康记录</h2></div><div id="healthList" class="entries"></div></section></div>
+    </section>
+    <section class="page" id="profile" aria-labelledby="profilePageTitle">
+      <div class="page-title"><h1 id="profilePageTitle">宝宝档案</h1></div>
+      <div class="profile-card">
+        <span class="profile-flower" data-icon="flower"></span>
+        <div class="profile-name"><h2 id="profileTitle">小茉莉</h2><p id="profileSummary">出生资料待填写</p></div>
+        <button type="button" class="profile-edit" id="profileEdit" aria-controls="profileForm" aria-expanded="false"><span data-icon="edit"></span>编辑资料</button>
+      </div>
+      <form id="profileForm" class="profile-form" hidden>
+        <div class="profile-fields"><label>宝宝昵称<input id="babyName" placeholder="小茉莉" maxlength="40" autocomplete="off"></label><label>出生日期<input id="birthDate" type="date"></label>
+        <label>出生时间<input id="birthTime" type="time"></label><label>性别<select id="sex"><option value="">请选择</option><option>女</option><option>男</option><option>暂不填写</option></select></label>
+        <label>出生体重（g）<input id="birthWeight" type="number" min="1" step="any" inputmode="decimal"></label><label>出生身长（cm）<input id="birthLength" type="number" min="0.1" step="any" inputmode="decimal"></label>
+        <label>出生头围（cm）<input id="birthHead" type="number" min="0.1" step="any" inputmode="decimal"></label></div>
+        <button class="primary" type="submit" id="saveProfile">保存宝宝档案</button>
+      </form>
+      <div class="section-heading"><h2>最近测量</h2><button class="text-link" data-action="growth"><span data-icon="plus"></span>记录测量</button></div>
+      <div id="recentGrowth" class="growth-summary"></div>
+      <section aria-labelledby="parentHeading">
+        <div class="section-heading"><h2 id="parentHeading">本机记录人</h2></div>
+        <div class="actor-switch" role="group" aria-label="本机记录人"><button type="button" data-parent="爸爸">爸爸</button><button type="button" data-parent="妈妈">妈妈</button></div>
+      </section>
+      <section id="gitFamily" hidden aria-labelledby="gitHeading">
+        <div class="section-heading"><h2 id="gitHeading">家庭共享</h2></div>
+        <p id="gitStatus" role="status" class="device-note">连接后，两部手机共用时间线、宝宝档案和照片。</p>
+        <div class="git-buttons"><button id="gitOpen" type="button">启用家庭同步</button><button id="gitNow" type="button" hidden>立即同步</button><button id="gitInvite" type="button" hidden>邀请另一位家长</button><button id="gitShowRecovery" type="button" hidden>查看恢复密钥</button><button id="gitSwitchView" type="button" hidden>查看原来的本机日记</button></div>
+        <div id="gitConflicts" class="git-conflicts"></div>
+      </section>
+      <section aria-labelledby="backupHeading">
+        <div class="section-heading"><h2 id="backupHeading">备份与恢复</h2></div>
+        <p class="device-note">换设备或清理网站数据前，请导出备份。备份包含记录、照片、宝宝档案和常用项目。</p>
+        <div class="backup-buttons"><button type="button" id="exportBackup">导出备份</button><button type="button" id="chooseBackup">从文件恢复</button></div>
+        <input type="file" id="backupFile" accept=".json,application/json" hidden>
+        <p id="backupStatus" class="device-note backup-status" role="status"></p>
+      </section>
+    </section>
+  </main>
+  <dialog id="gitSetup" class="git-dialog" aria-labelledby="gitSetupTitle"><form id="gitSetupForm">
+    <div class="dialog-head"><h2 id="gitSetupTitle">连接家庭日记</h2><button class="git-dismiss" type="button" id="gitCancel">关闭</button></div>
+    <label>连接方式<select id="gitMode"><option value="create">首次创建家庭</option><option value="join">使用邀请加入</option><option value="recover">使用恢复密钥</option><option value="resume" hidden>更新本机授权</option></select></label>
+    <label id="gitLinkRow" hidden>家庭邀请链接<input id="gitLink" type="text" placeholder="粘贴另一位家长发来的完整链接" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <label>家庭私有仓库<input id="gitRepo" type="text" required autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <label id="gitRecoveryRow" hidden>家庭恢复密钥<input id="gitRecovery" type="password" autocomplete="off" spellcheck="false"></label>
+    <label>本机 GitHub 令牌<input id="gitToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></label>
+    <p class="device-note">由仓库所有者为两台手机各生成一枚。选择 Only select repositories，只勾选家庭私库，Contents 选 Read and write。在对应手机粘贴一次。<a href="https://github.com/settings/personal-access-tokens/new?name=Xiaomoli-device&amp;target_name=anddygon&amp;contents=write&amp;expires_in=90" target="_blank" rel="noreferrer">前往 GitHub 授权 ↗</a></p>
+    <label id="gitMergeRow" class="git-check"><input type="checkbox" id="gitMerge">把这台手机原有的记录和照片并入家庭</label>
+    <p class="device-note" id="gitError" role="status"></p><button type="submit" class="primary" id="gitConnect">连接家庭</button>
+  </form></dialog>
+  <dialog id="gitInviteBox" class="git-dialog" aria-labelledby="gitInviteTitle"><div class="dialog-head"><h2 id="gitInviteTitle">邀请另一位家长</h2><button class="git-dismiss" type="button" id="gitCloseInvite">关闭</button></div>
+    <p>复制链接发给另一位家长。两台手机同时打开日记，等对方完成配对后再关闭。邀请有效期为 30 分钟。</p>
+    <label>一次性邀请链接<input id="gitInviteResult" readonly></label><button id="gitCopyInvite" class="primary" type="button">复制邀请链接</button><p id="gitCopyHint" class="device-note" role="status"></p></dialog>
+  <dialog id="gitKeyBox" class="git-dialog" aria-labelledby="gitKeyTitle"><div class="dialog-head"><h2 id="gitKeyTitle">家庭恢复密钥</h2><button class="git-dismiss" type="button" id="gitKeyClose">关闭</button></div>
+    <p>两台手机都更换或清除日记后，凭这把密钥和私有仓库授权找回云端记录。请存入密码管理器。</p><label>恢复密钥<input readonly id="gitKeyText"></label></dialog>
+  <dialog id="recordActions" aria-labelledby="recordActionsTitle">
+    <div class="dialog-head"><h2 id="recordActionsTitle">记录操作</h2><button type="button" id="actionsClose" class="dialog-close icon-button" aria-label="关闭操作"><span data-icon="close"></span></button></div>
+    <p id="actionSubject" class="device-note"></p>
+    <button type="button" id="actionEdit" class="record-action">编辑记录</button>
+    <button type="button" id="actionDelete" class="record-action danger">删除记录</button>
+  </dialog>
+  <dialog id="deleteDialog" aria-labelledby="deleteHeading" aria-describedby="deleteDetail">
+    <div class="dialog-head"><h2 id="deleteHeading">删除这条记录？</h2></div>
+    <p id="deleteDetail" class="device-note"></p>
+    <div class="dialog-controls"><button type="button" id="cancelDelete" autofocus>取消</button><button type="button" id="confirmDelete" class="danger">确认删除</button></div>
+  </dialog>
+  <dialog id="restoreDialog" aria-labelledby="restoreHeading" aria-describedby="restoreDetail">
+    <div class="dialog-head"><h2 id="restoreHeading">恢复这份备份？</h2></div>
+    <p id="restoreDetail" class="device-note"></p>
+    <p class="device-note">只将缺少的记录和常用项目补到这台设备，保留已有宝宝资料。</p>
+    <div class="dialog-controls"><button type="button" id="cancelRestore" autofocus>取消</button><button type="button" id="confirmRestore" class="accept">确认恢复</button></div>
+  </dialog>
+  <dialog id="entryDialog" aria-labelledby="dialogTitle"><form method="dialog" id="entryForm"><div class="dialog-grip"></div><div class="dialog-head"><h2 id="dialogTitle">添加记录</h2><button type="button" class="icon-button dialog-close" id="cancelEntry" autofocus>取消</button></div><div id="formFields"></div><button class="primary" id="submitEntry" type="submit">保存记录</button></form></dialog>
+  <dialog id="composeDialog"><div class="dialog-head"><h2>记一笔</h2><button type="button" class="icon-button" id="composeClose" aria-label="关闭"><span data-icon="close"></span></button></div><div id="composeList" class="compose-list"></div></dialog>
+  <dialog id="photoDialog"><div class="dialog-head"><h2>记录照片</h2><button type="button" id="photoClose" class="icon-button dialog-close" aria-label="关闭照片"><span data-icon="close"></span></button></div><img id="photoFull" alt="记录所附照片"></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

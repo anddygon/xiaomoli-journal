@@ -1,11 +1,15 @@
 {
+  "id": "./",
   "name": "小茉莉日记",
   "short_name": "小茉莉日记",
+  "lang": "zh-CN",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f5f4ee",
-  "theme_color": "#f5f4ee",
-  "lang": "zh-CN",
-  "icons": []
+  "background_color": "#f8f6ef",
+  "theme_color": "#21453a",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
 }

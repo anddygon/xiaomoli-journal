@@ -1,0 +1,87 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>双设备家庭同步验收</title>
+<style>body{margin:16px;font:16px system-ui}iframe{width:390px;height:560px;border:1px solid #777}pre{white-space:pre-wrap}button{padding:10px}</style>
+<button id="begin">运行双设备验收</button><pre id="result" role="status"></pre><iframe title="爸爸的测试手机"></iframe><iframe title="妈妈的测试手机"></iframe>
+<script type="module">
+const log=document.querySelector('#result'),[a,b]=document.querySelectorAll('iframe');
+const wait=ms=>new Promise(ok=>setTimeout(ok,ms));
+async function until(fn,description,ms=25000){
+ const end=Date.now()+ms;
+ while(Date.now()<end){if(await fn())return;await wait(100);}
+ const messages=[a,b].map(frame=>{const d=frame.contentDocument;
+   return [d?.querySelector('#gitError')?.textContent,d?.querySelector('#gitStatus')?.textContent,d?.querySelector('#openMessage')?.textContent].filter(Boolean).join(' / ');});
+ throw Error(description+'；'+messages.join(' | '));
+}
+const report=s=>log.textContent+=s+'\n';
+function setup(frame){
+  const doc=()=>frame.contentDocument, win=()=>frame.contentWindow, el=sel=>doc().querySelector(sel);
+  const tap=sel=>{const btn=el(sel);if(!btn || btn.disabled)throw Error('无法操作 '+sel);btn.click();};
+  const text=sel=>el(sel)?.textContent||'';
+  const ready=()=>until(()=>doc()?.body?.dataset.locked==='false' && el('#gitFamily')?.hidden===false,'日记初始化未就绪');
+  const tab=t=>tap('[data-tab="'+t+'"]');
+  const sync=async()=>{tap('#gitNow');await wait(130);};
+  return {el,tap,text,ready,win,tab,sync};
+}
+const dad=setup(a),mom=setup(b);
+const id=Math.random().toString(36).slice(2),phoneA='/qa-phone-a-'+id+'/',phoneB='/qa-phone-b-'+id+'/';
+async function open(frame,path){await new Promise(resolve=>{frame.onload=resolve;frame.src=path;});}
+function writeField(api,sel,value){const field=api.el(sel);field.value=value;field.dispatchEvent(new (api.win().Event)('input',{bubbles:true}));}
+async function tests(){
+  await open(a,phoneA);await dad.ready();dad.tab('profile');dad.tap('#gitOpen');
+  writeField(dad,'#gitRepo','parents/private');writeField(dad,'#gitToken','github_pat_fixture_dad');dad.tap('#gitConnect');
+  await until(()=>!dad.el('#gitSetup').open&&!dad.el('#gitInvite').hidden,'爸爸未连上模拟家庭仓库');report('爸爸已建家庭');
+  dad.tap('#gitInvite');await until(()=>dad.el('#gitInviteBox').open,'无法生成邀请');
+  const invite=new URL(dad.el('#gitInviteResult').value);
+  if(!invite.hash.startsWith('#family='))throw Error('邀请缺少家庭信息');
+  // Devices use separate path-scoped IndexedDB and BroadcastChannel names.
+  // Only the fixture origin/path is changed, the product pairing fragment is copied unchanged.
+  await open(b,phoneB+invite.hash);await mom.ready();await until(()=>mom.el('#gitSetup').open,'邀请未自动进入配对');
+  writeField(mom,'#gitToken','github_pat_fixture_mom');mom.tap('#gitConnect');
+  await until(()=>!mom.el('#gitSetup').open&&!mom.el('#gitInvite').hidden,'妈妈未成功配对',55000);
+  dad.tap('#gitCloseInvite');report('两台设备用不同令牌、一次性邀请完成配对');
+  mom.tab('profile');mom.tap('[data-parent="妈妈"]');
+  await until(()=>mom.text('#actorName').includes('妈妈'),'记录身份未切换');
+  dad.tab('home');dad.tap('#home [data-action="pee"]');await until(()=>dad.text('#peeCount')==='1 次','爸爸新增未保存');
+  dad.tab('profile');await dad.sync();await mom.sync();
+  await until(async()=>{if(mom.text('#peeCount')==='1 次')return true;await mom.sync();return false;},'妈妈未看到爸爸新增');
+  report('爸爸的尿尿记录同步到妈妈手机');
+  mom.win().sessionStorage.setItem('qa-offline:'+phoneB,'yes');mom.win().dispatchEvent(new Event('offline'));
+  mom.tab('home');mom.tap('#home [data-action="poop"]');await until(()=>mom.text('#poopCount')==='1 次','离线新增失败');
+  const edit=mom.el('#homeTimeline .entry-row .entry-title');edit.click();
+  await until(()=>mom.el('#entryDialog').open && mom.el('input[type="file"]'),'离线照片表单未打开');
+  const c=mom.win().document.createElement('canvas');c.width=640;c.height=480;
+  const ctx=c.getContext('2d');ctx.fillStyle='#eead2c';ctx.fillRect(0,0,c.width,c.height);
+  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg'));
+  const w=mom.win(),dt=new w.DataTransfer();dt.items.add(new w.File([blob],'synthetic.jpg',{type:'image/jpeg'}));
+  const picker=mom.el('#entryDialog input[type=file]');picker.files=dt.files;picker.dispatchEvent(new w.Event('change',{bubbles:true}));
+  await until(()=>mom.el('.entry-photo-size')?.textContent&& !mom.el('#submitEntry').disabled,'照片未压缩');
+  writeField(mom,'#entryDialog [name="note"]','合成离线照片');mom.tap('#submitEntry');await until(()=>!mom.el('#entryDialog').open,'离线照片未保存');
+  await open(b,phoneB);await mom.ready();await until(()=>mom.text('#poopCount')==='1 次','离线重开丢失记录');
+  if(!mom.el('#homeTimeline .entry-photo'))throw Error('离线重开丢失照片');
+  if(dad.text('#poopCount')!=='0 次')throw Error('离线写入意外出现在另一台手机');
+  report('妈妈离线添加照片、关闭再打开后仍能查看');
+  mom.win().sessionStorage.removeItem('qa-offline:'+phoneB);mom.win().dispatchEvent(new Event('online'));mom.tab('profile');
+  await until(async()=>{await mom.sync();await dad.sync();return dad.text('#poopCount')==='1 次'&&dad.el('#homeTimeline .entry-photo');},'爸爸未收到带照片的记录');
+  dad.tab('home');dad.tap('#homeTimeline .entry-photo');await until(()=>dad.el('#photoFull')?.naturalWidth>0,'爸爸收到照片但不能打开');
+  dad.tap('#photoClose');report('恢复网络后，爸爸看到妈妈的记录和可解码的照片');
+  mom.win().sessionStorage.setItem('qa-offline:'+phoneB,'yes');
+  async function editPee(api,note){
+    api.tab('home');api.el('#homeTimeline button[aria-label^="修改尿尿"]').click();
+    await until(()=>api.el('#entryDialog').open,'编辑记录未打开');
+    writeField(api,'#entryDialog [name="note"]',note);api.tap('#submitEntry');
+    await until(()=>!api.el('#entryDialog').open,'编辑记录未保存');
+  }
+  await editPee(mom,'测试妈妈修改');await editPee(dad,'测试爸爸修改');
+  dad.tab('profile');await until(async()=>{await dad.sync();return dad.text('#gitStatus').includes('已同步');},'爸爸修改未上传');
+  mom.win().sessionStorage.removeItem('qa-offline:'+phoneB);mom.tab('profile');
+  await until(async()=>{await mom.sync();return mom.text('#gitConflicts').includes('测试爸爸修改')&&mom.text('#gitConflicts').includes('测试妈妈修改');},'同一条记录冲突未显示两个版本');
+  const remoteChoice=[...mom.el('#gitConflicts').querySelectorAll('button')].find(x=>x.textContent==='保留家庭版本');remoteChoice.click();
+  await until(()=>!mom.text('#gitConflicts')&&mom.text('#homeTimeline').includes('测试爸爸修改'),'所选家庭版本未保存');
+  report('两台设备同时改同一条时，可见两份具体内容，选择后保留指定版本');
+  const data=await (await fetch('/qa-check?instance='+id)).json();if(data.plaintext||data.writes<3)throw Error('模拟仓库密文检查未通过');
+  report('PASS · 双设备录入、邀请、双向同步、离线照片和密文检查通过。');
+}
+document.querySelector('#begin').onclick=async e=>{
+  e.target.disabled=true;log.textContent='';
+  try{await tests();}catch(err){report('FAIL · '+err.message);console.error(err);}
+};
+</script></html>

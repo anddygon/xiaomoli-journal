@@ -1,0 +1,66 @@
+#entryDialog {
+  width:min(100%, 490px); max-height:min(90dvh, 800px); max-width:100%;
+  margin:auto; padding:0; background:#fffef9; border:1px solid #dce0d5;
+  border-radius:24px; color:#263d31; box-shadow:0 22px 80px #182e252c;
+  overflow:auto; overscroll-behavior:contain; font-family:inherit;
+}
+#entryDialog:not([open]) { display:none }
+#entryDialog::backdrop { background:#1e30287a; backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px) }
+#entryForm { margin:0; padding:23px 24px max(23px, env(safe-area-inset-bottom)) }
+#entryForm :where(input,button,select,textarea) { font-family:inherit }
+#entryForm [hidden] { display:none!important }
+#entryForm .entry-label {
+  display:block; color:#526356; font-size:13px; letter-spacing:.02em; font-weight:600;
+  line-height:1.5; margin:0 0 7px;
+}
+#entryForm :where(.entry-group,.entry-field,.entry-photo) { border:0; padding:0; margin:16px 0 0; min-width:0; display:block }
+#entryForm .entry-group { max-width:100% }
+#entryForm .entry-group legend { padding:0; float:none }
+#entryForm .entry-options,.entry-photo-actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap }
+#entryForm .entry-option { display:inline-flex; position:relative; margin:0; cursor:pointer }
+#entryForm .entry-option input { position:absolute; opacity:0; width:1px; height:1px; padding:0; margin:0; }
+#entryForm .entry-option span, #entryForm .entry-photo-action {
+  display:flex; align-items:center; justify-content:center; padding:0 13px;
+  min-height:40px; font-size:14px; font-weight:500; color:#526657; border-radius:12px;
+  background:#f9f9f3; border:1px solid #dcdfd3;
+}
+#entryForm .entry-option input:checked + span { color:#28533e; border-color:#9eb2a0; background:#e7eee3; font-weight:650 }
+#entryForm .entry-option input:disabled + span { color:#929b92; background:#f6f6f0; border-color:#e6e6db }
+#entryForm .entry-option input:focus-visible + span { outline:2px solid #437658; outline-offset:2px }
+#entryForm :where(.entry-datetime,.entry-doses) { display:grid; grid-template-columns:minmax(0,1.18fr) minmax(0,1fr); gap:12px }
+#entryForm .entry-input {
+  color:#263e30; background:#fafbf6; width:100%; max-width:100%; min-width:0;
+  border:1px solid #dce0d3; border-radius:12px; font-size:16px; line-height:1.35;
+  min-height:44px; padding:10px 11px; margin:0; color-scheme:light;
+}
+#entryForm input::placeholder { color:#838e82 }
+#entryForm :where(button,input,select):focus-visible { outline:2px solid #4c795f; outline-offset:2px }
+#entryForm .entry-remember { display:flex; align-items:center; gap:8px; margin-top:10px; min-height:34px; font-size:13px; color:#47634e; }
+#entryForm .entry-remember input { width:17px; height:17px; margin:0; accent-color:#365f48 }
+#entryForm .entry-photo-preview { display:flex; align-items:center; gap:10px; margin-top:10px; color:#526256; font-size:12px }
+#entryForm .entry-photo-view { border:0; background:none; padding:0; line-height:0 }
+#entryForm .entry-photo-view img { width:72px; height:64px; border-radius:10px; object-fit:cover }
+#entryForm .entry-photo-size { font-variant-numeric:tabular-nums }
+#entryForm .entry-photo-remove { color:#74533c; padding:8px 3px; border:0; background:transparent; margin-left:auto }
+#entryForm .entry-status { color:#88472c; font-size:13px; line-height:1.5; margin:9px 0 0 }
+#entryForm .entry-status:empty { display:none }
+#submitEntry { width:100%; min-height:46px; border-radius:14px; border:0; color:#fff; background:#315d48; font-size:15px; font-weight:640; margin:20px 0 0 }
+#submitEntry:disabled { opacity:.6; cursor:wait }
+@media (max-width:580px) {
+  #entryDialog { margin:auto auto 0; width:100%; border-bottom:0; border-radius:23px 23px 0 0 }
+  #entryForm { padding:18px 19px calc(15px + env(safe-area-inset-bottom)) }
+}
+@media (prefers-reduced-motion:reduce) { #entryForm *,#entryDialog { scroll-behavior:auto!important; animation:none!important } }
+
+.entry-side-detail{margin-top:12px}
+.entry-side-detail summary{min-height:36px;align-content:center;font-size:13px;font-weight:560;color:#4e6854}
+
+/* Keep dismissal in reach even when a small screen or keyboard leaves little room. */
+#entryForm .dialog-head { position:sticky; top:0; z-index:2; background:#fffef9; padding:6px 0 }
+#cancelEntry { min-width:54px; min-height:44px; padding:0 9px; color:#365b45; font-size:15px; font-weight:570; border-radius:12px }
+@media (max-width:580px) {
+  #entryDialog { top:var(--entry-visible-bottom,100dvh); bottom:auto; margin:0; position:fixed;
+    height:fit-content; max-height:var(--entry-visible-height,90dvh); transform:translateY(-100%) }
+  #entryForm { padding-top:0 }
+  #entryForm .dialog-grip { margin-top:10px }
+}
