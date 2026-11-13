@@ -22,4 +22,5 @@ jobs:
       - run: python -m pip install playwright==1.55.0
       - run: python -m playwright install --with-deps "${{ matrix.browser }}"
       - run: python qa/mobile_acceptance.py . "${{ matrix.browser }}"
-      - run: python qa/family-browser.py . "${{ matrix.browser }}"
+      - if: ${{ !cancelled() }}
+        run: python qa/family-browser.py . "${{ matrix.browser }}"

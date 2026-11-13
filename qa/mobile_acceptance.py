@@ -4,6 +4,7 @@ from functools import partial
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 import json
 import os
+import re
 from pathlib import Path
 from random import Random
 from shutil import copytree
@@ -65,10 +66,14 @@ def exercise(page, context, host):
 
     # A historical sleep spans midnight, and a day with no start still has a visible interval.
     page.locator("#dateFilter").fill("2026-08-09")
+    expect(page.locator("#timelineHeading")).to_contain_text("8月9日")
     page.locator("#timeline [data-compose]").click()
     page.locator("#composeList").get_by_role("button", name="睡眠", exact=True).click()
     form.locator('[name="time"]').fill("23:50")
     form.locator('[name="duration"]').fill("35")
+    expect(form.locator('[name="date"]')).to_have_value("2026-08-09")
+    expect(form.locator('[name="time"]')).to_have_value(re.compile(r"^23:50(?::00(?:\.0+)?)?$"))
+    expect(form.locator('[name="duration"]')).to_have_value("35")
     page.locator("#submitEntry").click()
     expect(form).to_be_hidden()
     expect(page.locator("#timelineSummary")).to_contain_text("当日睡眠 10 分钟")
@@ -93,12 +98,15 @@ def exercise(page, context, host):
     page.clock.set_fixed_time("2026-08-11T23:50:00+08:00")
     tap("feed")
     page.locator("#homeTimeline").get_by_role("button", name="计时左侧").click()
+    expect(page.locator("#homeTimeline")).to_contain_text("左侧计时中")
     page.clock.set_fixed_time("2026-08-11T23:57:00+08:00")
     page.locator("#homeTimeline").get_by_role("button", name="换到右侧").click()
+    expect(page.locator("#homeTimeline")).to_contain_text("右侧计时中")
     page.clock.set_fixed_time("2026-08-12T00:10:00+08:00")
     page.reload()
     expect(page.locator("#homeTimeline")).to_contain_text("右侧计时中")
     page.locator("#homeTimeline").get_by_role("button", name="结束喂奶").click()
+    expect(home.locator('[data-action="feed"]')).to_have_attribute("aria-label", "喂奶")
     click_tab("timeline")
     expect(page.locator("#timelineSummary")).to_contain_text("当日亲喂 10 分钟")
     expect(page.locator("#timelineList")).to_contain_text("左侧 7 分钟")
@@ -206,7 +214,25 @@ def main():
                     context = browser.new_context(viewport={"width":390,"height":844},is_mobile=True,has_touch=True,timezone_id="Asia/Shanghai",accept_downloads=True)
                     page = context.new_page()
                     page.set_default_timeout(15000)
-                    exercise(page,context,f"http://127.0.0.1:{server.server_port}")
+                    try:
+                        exercise(page,context,f"http://127.0.0.1:{server.server_port}")
+                    except Exception:
+                        # This local test uses only synthetic form inputs. Skip secrets and binary fields.
+                        details = page.evaluate("""() => {
+                            const dialog=document.querySelector('dialog[open]');
+                            const fields=[...(dialog?.querySelectorAll('input,select,textarea') || [])];
+                            return {clock:new Date().toString(), title:dialog?.querySelector('h2')?.textContent,
+                                status:dialog?.querySelector('[role=status]')?.textContent,
+                                selectedDate:document.querySelector('#dateFilter')?.value,
+                                summary:document.querySelector('#timelineSummary')?.textContent,
+                                form:fields.filter(f=>!['password','file'].includes(f.type) && f.closest('#entryForm'))
+                                  .map(f=>({name:f.name,type:f.type,value:f.value,enabled:!f.disabled,checked:f.checked,
+                                    invalid:f.willValidate && !f.validity.valid,reason:f.validationMessage})),
+                                submitDisabled:dialog?.querySelector('[type=submit]')?.disabled
+                            };
+                        }""")
+                        print("UI diagnostics", json.dumps(details, ensure_ascii=False), flush=True)
+                        raise
                     print("PASS",engine_name,"mobile entry, cancellation, cross-midnight timeline, timers, edit/delete/undo, photo, restore and offline reopen.")
                 finally: browser.close()
         finally:

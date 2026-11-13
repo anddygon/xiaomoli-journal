@@ -322,13 +322,20 @@ export function createEntryController({getEvents, getCatalog, getParent, getScop
   }
 
   function buildRecord() {
-    const start = new Date(date.value+'T'+time.value+':00').getTime();
+    // Native time controls may serialize zero seconds or fractional seconds. The diary uses minutes.
+    const minute = time.value.slice(0,5);
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(minute)) throw new Error('请选择有效的发生时间。');
+    const [year,month,day] = date.value.split('-').map(Number);
+    const [hour,minutes] = minute.split(':').map(Number);
+    const localDate = new Date(year,month-1,day,hour,minutes);
+    const start = localDate.getTime();
+    if (dayKey(localDate)!==date.value || clock(localDate)!==minute) throw new Error('请选择有效的本地日期和时间。');
     const now = Date.now();
     if (!Number.isFinite(start) || start > now) throw new Error('请选择已经发生的日期和时间。');
     const extra = {...original?.extra};
-    const event = {...original,_scope:openedScope,type,date:date.value,time:time.value,extra,actor:original?.actor ?? getParent(),
+    const event = {...original,_scope:openedScope,type,date:date.value,time:minute,extra,actor:original?.actor ?? getParent(),
       createdAt: original?.createdAt ?? new Date().toISOString(),status:'local'};
-    extra.time = time.value;
+    extra.time = minute;
     extra.note = get('note');
     if (type === 'feed' || type === 'sleep') {
       const feed = type === 'feed';
@@ -339,7 +346,7 @@ export function createEntryController({getEvents, getCatalog, getParent, getScop
       if (feed) {
         extra.method = method; extra.side = method === '奶粉' ? '' : get('side');
         extra.volume = method === '母乳' ? '' : get('volume');
-        if (timed && extra.sideTimer && (original?.date !== date.value || original?.time !== time.value || extra.side !== '双侧')) {
+        if (timed && extra.sideTimer && (original?.date !== date.value || original?.time !== minute || extra.side !== '双侧')) {
           throw new Error('正在分侧计时。请先结束这次喂奶，再修改开始时间或侧别。');
         }
         if (!timed) {
@@ -363,11 +370,11 @@ export function createEntryController({getEvents, getCatalog, getParent, getScop
       if (timed) {
         const another = (getEvents() || []).some(e => e.id !== original?.id && e.type === type && e.startedAt != null && e.endedAt == null);
         if (another) throw new Error('已有一条'+titles[type]+'正在计时，可在首页结束。');
-        const preserveStart = original?.date === date.value && original?.time === time.value && original?.startedAt != null;
+        const preserveStart = original?.date === date.value && original?.time === minute && original?.startedAt != null;
         event.startedAt = preserveStart ? original.startedAt : start === Math.floor(now/60000)*60000 ? now : start;
       } else if (extra.duration !== '') {
         const oldDuration = original?.extra?.duration ?? (original?.startedAt != null && original?.endedAt != null ? Math.round((original.endedAt-original.startedAt)/60000) : null);
-        const preserveInterval = original?.endedAt != null && original?.startedAt != null && date.value === original.date && time.value === original.time && Number(oldDuration) === Number(duration);
+        const preserveInterval = original?.endedAt != null && original?.startedAt != null && date.value === original.date && minute === original.time && Number(oldDuration) === Number(duration);
         event.startedAt = preserveInterval ? original.startedAt : start;
         event.endedAt = preserveInterval ? original.endedAt : start + Number(duration)*60000;
         if (event.endedAt > now) throw new Error('按这个时长计算，结束时间晚于现在。');

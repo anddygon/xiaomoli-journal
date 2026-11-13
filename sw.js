@@ -1,6 +1,6 @@
 const scope = self.registration.scope;
 const cachePrefix = 'xiaomoli-pages:' + encodeURIComponent(scope) + ':';
-const cacheName = cachePrefix + '2026-11-14.4';
+const cacheName = cachePrefix + '2026-11-14.5';
 const assets = [
   'index.html','manifest.webmanifest','app.js','app.css','entry.js','entry.css',
   'photo-compress.js','backup.js','legacy.js','git-family-ui.js','git-family-remote.js','git-family-sync.js','icons.js','storage.js','jasmine.webp',
