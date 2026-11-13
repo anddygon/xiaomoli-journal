@@ -10,6 +10,9 @@ from random import Random
 from shutil import copytree
 import struct
 import sys
+import socket
+from contextlib import contextmanager
+from urllib.parse import urlsplit
 from tempfile import TemporaryDirectory
 from threading import Thread
 import zlib
@@ -32,7 +35,7 @@ def test_image():
     return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", zlib.compress(pixels)) + chunk(b"IEND", b"")
 
 
-def exercise(page, context, host):
+def exercise(page, context, host, stop_origin):
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
     page.add_init_script("""(() => {
@@ -171,19 +174,28 @@ def exercise(page, context, host):
     assert image.startswith(b"\xff\xd8") and 0 < len(image) <= 350 * 1024
     assert rows["med"]["extra"]["item"] == "测试药品" and rows["supplement"]["extra"]["item"] == "测试益生菌"
 
-    # Verify browser Service Worker controls the document and the app cold-starts offline.
+    # Stop the actual listener, prove the port is closed, then navigate a fresh page.
+    # Cache-busting avoids the HTTP cache. The offline shell must answer both navigations.
     page.evaluate("navigator.serviceWorker.ready.then(() => true)")
     if not page.evaluate("!!navigator.serviceWorker.controller"):
         page.reload()
     page.wait_for_function("!!navigator.serviceWorker.controller")
-    context.set_offline(True)
-    page.reload(wait_until="domcontentloaded")
-    expect(page.locator("body")).to_have_attribute("data-locked", "false")
-    click_tab("home")
-    expect(page.locator("#peeCount")).to_have_text("1 次")
-    tap("pee")
-    expect(page.locator("#peeCount")).to_have_text("2 次")
-    context.set_offline(False)
+    with stop_origin():
+        addr=urlsplit(host)
+        with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as probe:
+            assert probe.connect_ex((addr.hostname,addr.port)) != 0, "test origin still accepts connections"
+        offline_page=context.new_page()
+        try:
+            for attempt in range(2):
+                offline_page.goto(host+"/xiaomoli-journal/?offline-cold="+str(attempt),wait_until="domcontentloaded")
+                expect(offline_page.locator("body")).to_have_attribute("data-locked","false")
+                assert offline_page.evaluate("!!navigator.serviceWorker.controller"), "offline page lacks controller"
+                expect(offline_page.locator("#peeCount")).to_have_text(f"{1+attempt} 次")
+                if attempt==0:
+                    offline_page.locator('#home [data-action="pee"]').click()
+                    expect(offline_page.locator("#peeCount")).to_have_text("2 次")
+        finally:
+            offline_page.close()
 
     # Restore the picture and selected date in an empty installation, without replacing the first.
     page.goto(host + "/blank-journal/")
@@ -216,8 +228,21 @@ def main():
                     (dest / path.name).write_bytes(path.read_bytes())
             if (source / "assets").is_dir():
                 copytree(source / "assets", dest / "assets")
-        server = ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler,directory=tmp))
-        Thread(target=server.serve_forever,daemon=True).start()
+        def listen(port):
+            server=ThreadingHTTPServer(("127.0.0.1",port),partial(QuietHandler,directory=tmp))
+            Thread(target=server.serve_forever,daemon=True).start()
+            return server
+        server=listen(0)
+        port=server.server_port
+        @contextmanager
+        def stop_origin():
+            nonlocal server
+            server.shutdown()
+            server.server_close()
+            try:
+                yield
+            finally:
+                server=listen(port)
         try:
             with sync_playwright() as api:
                 options = {}
@@ -230,7 +255,7 @@ def main():
                     page_failures = []
                     page.on("pageerror",lambda exc: page_failures.append(str(exc)))
                     try:
-                        exercise(page,context,f"http://127.0.0.1:{server.server_port}")
+                        exercise(page,context,f"http://127.0.0.1:{port}",stop_origin)
                     except Exception:
                         # This local test uses only synthetic form inputs. Skip secrets and binary fields.
                         details = page.evaluate("""() => {

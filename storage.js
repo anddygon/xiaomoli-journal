@@ -111,6 +111,54 @@ function upgrade(db) {
   docs.createIndex('timer',['scope','timerType']);
   db.createObjectStore(META,{keyPath:'key'}).put({key:WORKSPACE,scope:'local/device',localScope:'local/device'});
 }
+// Existing versions may already contain native Blob rows. Repack those once
+// without changing document revisions, pending edits or tombstones. A full
+// scan is needed only on the upgrade, never on a routine reopen.
+async function upgradePhotoBytes(db) {
+  const completed='migration:photo-bytes-v1';
+  if(await transaction(db,'readonly',tx=>get(tx,META,completed)))return;
+  const locations=await transaction(db,'readonly',async tx=>{
+    const stores=STORES.filter(name=>name!==META);
+    stores.push(META);
+    const found=[];
+    await Promise.all(stores.map(name=>new Promise((resolve,reject)=>{
+      const cursor=tx.objectStore(name).openCursor();
+      cursor.onerror=()=>reject(cursor.error);
+      cursor.onsuccess=()=>{
+        const c=cursor.result;
+        if(!c){resolve();return;}
+        const value=c.value;
+        if(photoLocations(value).some(v=>v?.extra?.photo instanceof Blob))found.push([name,c.primaryKey]);
+        c.continue();
+      };
+    })));
+    return found;
+  });
+  for(const [store,key] of locations) {
+    // An old tab may still write the same entry. Compare its revision and queue
+    // state inside the writing transaction, or read and convert it again.
+    for(;;){
+      const before=await transaction(db,'readonly',tx=>get(tx,store,key));
+      if(!before || !photoLocations(before).some(v=>v?.extra?.photo instanceof Blob))break;
+      const update={...before};
+      for(const field of ['value','draft','remoteValue']){
+        if(before[field]?.extra?.photo instanceof Blob)update[field]=await packPhoto(before[field]);
+      }
+      if(before.doc?.value?.extra?.photo instanceof Blob)update.doc=await packDoc(before.doc);
+      const compare=row=>JSON.stringify([row?.localRevision,row?.remote,row?.baseRevision,row?.remoteDeleted,
+        row?.opId,row?.doc?.mutationId,row?.doc?.deleted,row?.draft?.updatedAt,row?.remoteValue?.updatedAt]);
+      const saved=await transaction(db,'readwrite',async tx=>{
+        const current=await get(tx,store,key);
+        if(!current || compare(current)!==compare(before))return false;
+        if(photoLocations(current).some(v=>v?.extra?.photo instanceof Blob))await put(tx,store,update);
+        return true;
+      });
+      if(saved)break;
+    }
+  }
+  await transaction(db,'readwrite',tx=>put(tx,META,{key:completed}));
+}
+function photoLocations(row) {return [row?.value,row?.doc?.value,row?.draft,row?.remoteValue];}
 export async function openJournal(databaseName='xiaomoli-pages:' + new URL('./',import.meta.url).pathname) {
   if(!globalThis.indexedDB)throw new Error('此浏览器无法使用本机记录存储');
   const opening=indexedDB.open(databaseName,1);
@@ -122,6 +170,7 @@ export async function openJournal(databaseName='xiaomoli-pages:' + new URL('./',
     opening.onsuccess=()=>{if(blocked)opening.result.close();else resolve(opening.result);};
   });
   db.onversionchange=()=>db.close();
+  try{await upgradePhotoBytes(db);}catch(e){db.close();throw e;}
   const listeners=new Set();
   const change=()=>listeners.forEach(fn=>fn());
   const read=fn=>transaction(db,'readonly',fn);
