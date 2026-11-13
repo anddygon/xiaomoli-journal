@@ -37,7 +37,7 @@ def exercise(page, context, host):
     page.on("pageerror", lambda exc: errors.append(str(exc)))
     page.add_init_script("""(() => {
       window.qaEntryEvents=[];
-      for(const name of ['click','submit','invalid','close','cancel','change','error','unhandledrejection']){
+      for(const name of ['pointerdown','pointerup','click','submit','invalid','close','cancel','change','error','unhandledrejection']){
         document.addEventListener(name,e=>{
           const target=e.target;
           if(!target.closest?.('#entryDialog') && name!=='error' && name!=='unhandledrejection')return;
@@ -65,11 +65,12 @@ def exercise(page, context, host):
             form.locator('[name="item"]').fill("未保存的测试")
             page.set_viewport_size({"width":390,"height":380})
             form.locator('[name="note"]').focus()
-            form.evaluate("(dialog) => { dialog.scrollTop = dialog.scrollHeight; }")
+            form.locator("#formFields").evaluate("(area) => { area.scrollTop = area.scrollHeight; }")
             # The sticky cancel control stays within the visible part of the device.
             page.wait_for_function("""() => {
                 const b = document.querySelector('#cancelEntry').getBoundingClientRect();
-                return b.top >= -1 && b.bottom <= window.visualViewport.height + 1;
+                const save = document.querySelector('#submitEntry').getBoundingClientRect();
+                return b.top >= -1 && save.top > b.bottom && save.bottom <= window.visualViewport.height + 1;
             }""")
         form.get_by_role("button", name="取消").click()
         expect(form).to_be_hidden()

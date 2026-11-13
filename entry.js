@@ -167,7 +167,8 @@ export function createEntryController({getEvents, getCatalog, getParent, getScop
   const viewport = window.visualViewport;
   function fitViewport() {
     if (!viewport) return;
-    dialog.style.setProperty('--entry-visible-bottom',(viewport.offsetTop + viewport.height)+'px');
+    const obscured = Math.max(0,window.innerHeight - viewport.offsetTop - viewport.height);
+    dialog.style.setProperty('--entry-keyboard-inset',obscured+'px');
     dialog.style.setProperty('--entry-visible-height',Math.floor(viewport.height * .94)+'px');
   }
   viewport?.addEventListener('resize',fitViewport);
@@ -318,7 +319,7 @@ export function createEntryController({getEvents, getCatalog, getParent, getScop
     status = el('p','entry-status');
     status.setAttribute('role','status');
     fields.append(status);
-    recalc?.(); fitViewport(); dialog.showModal(); dialog.scrollTop=0;
+    recalc?.(); fitViewport(); dialog.showModal(); fields.scrollTop=0;
   }
 
   function buildRecord() {
@@ -424,6 +425,14 @@ export function createEntryController({getEvents, getCatalog, getParent, getScop
   }
   // The primary action uses one explicit save path. Native dialog-form submission
   // may dismiss or suppress validation before an asynchronous IndexedDB write.
+  // Keep keyboard focus in the field until the tap reaches its button. Without
+  // this, WebKit can move a bottom sheet on input blur between press and release.
+  submit.addEventListener('pointerdown',event=>{
+    const focused=document.activeElement;
+    if(event.button===0 && focused?.matches('input,textarea,select') && form.contains(focused)) {
+      event.preventDefault();
+    }
+  });
   submit.addEventListener('click',event=>{event.preventDefault();void submitRecord();});
   form.addEventListener('submit',event=>{event.preventDefault();void submitRecord();});
   cancel.type = 'button';

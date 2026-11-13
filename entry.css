@@ -2,11 +2,18 @@
   width:min(100%, 490px); max-height:min(90dvh, 800px); max-width:100%;
   margin:auto; padding:0; background:#fffef9; border:1px solid #dce0d5;
   border-radius:24px; color:#263d31; box-shadow:0 22px 80px #182e252c;
-  overflow:auto; overscroll-behavior:contain; font-family:inherit;
+  overflow:hidden; overscroll-behavior:contain; font-family:inherit;
 }
 #entryDialog:not([open]) { display:none }
 #entryDialog::backdrop { background:#1e30287a; backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px) }
-#entryForm { margin:0; padding:23px 24px max(23px, env(safe-area-inset-bottom)) }
+#entryDialog[open] { display:flex; flex-direction:column }
+#entryForm { margin:0; padding:0 24px max(18px, env(safe-area-inset-bottom));
+  display:flex; flex-direction:column; min-height:0; max-height:inherit; width:100%; }
+#formFields { overflow-y:auto; overscroll-behavior:contain; min-height:0; padding:0 2px 8px; }
+#entryForm .dialog-grip, #entryForm .dialog-head, #submitEntry { flex:0 0 auto }
+#entryForm .dialog-grip { margin-top:12px }
+#entryForm .dialog-head { margin:0; padding:6px 0; background:#fffef9 }
+#entryForm .primary { margin-top:10px; }
 #entryForm :where(input,button,select,textarea) { font-family:inherit }
 #entryForm [hidden] { display:none!important }
 #entryForm .entry-label {
@@ -48,19 +55,16 @@
 #submitEntry:disabled { opacity:.6; cursor:wait }
 @media (max-width:580px) {
   #entryDialog { margin:auto auto 0; width:100%; border-bottom:0; border-radius:23px 23px 0 0 }
-  #entryForm { padding:18px 19px calc(15px + env(safe-area-inset-bottom)) }
+  #entryForm { padding:0 19px max(15px,env(safe-area-inset-bottom)) }
 }
 @media (prefers-reduced-motion:reduce) { #entryForm *,#entryDialog { scroll-behavior:auto!important; animation:none!important } }
 
 .entry-side-detail{margin-top:12px}
 .entry-side-detail summary{min-height:36px;align-content:center;font-size:13px;font-weight:560;color:#4e6854}
 
-/* Keep dismissal in reach even when a small screen or keyboard leaves little room. */
-#entryForm .dialog-head { position:sticky; top:0; z-index:2; background:#fffef9; padding:6px 0 }
+/* Only the fields scroll. Header and save stay anchored when a focused input blurs. */
 #cancelEntry { min-width:54px; min-height:44px; padding:0 9px; color:#365b45; font-size:15px; font-weight:570; border-radius:12px }
 @media (max-width:580px) {
-  #entryDialog { top:var(--entry-visible-bottom,100dvh); bottom:auto; margin:0; position:fixed;
-    height:fit-content; max-height:var(--entry-visible-height,90dvh); transform:translateY(-100%) }
-  #entryForm { padding-top:0 }
-  #entryForm .dialog-grip { margin-top:10px }
+  #entryDialog { position:fixed; inset:auto 0 var(--entry-keyboard-inset,0px); margin:0 auto;
+    height:auto; max-height:var(--entry-visible-height,90dvh); }
 }

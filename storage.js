@@ -14,6 +14,31 @@ const request = r => new Promise((resolve,reject) => {
 const get = (tx,s,k) => request(tx.objectStore(s).get(k));
 const put = (tx,s,v) => request(tx.objectStore(s).put(v));
 const scoped = (tx,store,scope) => request(tx.objectStore(store).index('scope').getAll(scope));
+// Persist the photo bytes directly. Some WebKit data stores reject native Blob
+// references. Read the Blob before opening a transaction so it stays active.
+async function packPhoto(value) {
+  const photo=value?.extra?.photo;
+  if(!(photo instanceof Blob))return value;
+  const stored={encoding:'journal-photo-bytes',type:photo.type,bytes:await photo.arrayBuffer()};
+  return {...value,extra:{...value.extra,photo:stored}};
+}
+function unpackPhoto(value) {
+  const photo=value?.extra?.photo;
+  if(photo?.encoding!=='journal-photo-bytes' || !(photo.bytes instanceof ArrayBuffer))return value;
+  const blob=new Blob([photo.bytes],{type:photo.type || 'image/jpeg'});
+  return {...value,extra:{...value.extra,photo:blob}};
+}
+async function packBackup(source) {
+  const events=[];
+  for(const entry of source.events || [])events.push(await packPhoto(entry));
+  return {...source,events};
+}
+async function packDoc(doc) {
+  return doc?.value?.extra?.photo ? {...doc,value:await packPhoto(doc.value)} : doc;
+}
+function unpackDoc(doc) {
+  return doc?.value?.extra?.photo ? {...doc,value:unpackPhoto(doc.value)} : doc;
+}
 function productValue(record) {
   const v = {...record};
   for (const key of ['id','uid','key','status','revision','_scope','serverRevision']) delete v[key];
@@ -134,9 +159,11 @@ export async function openJournal(databaseName='xiaomoli-pages:' + new URL('./',
     load(){return read(async tx=>{
       const ws=await current(tx);
       const [data,prefs]=await Promise.all([snapshot(tx,ws.scope),get(tx,META,'prefs/'+ws.localScope)]);
-      return {...data,scope:ws.scope,preferences:prefs?{parent:prefs.parent}:{}};
+      return {...data,events:data.events.map(unpackPhoto),scope:ws.scope,preferences:prefs?{parent:prefs.parent}:{}};
     });},
-    saveEvent(e,template){return write(async tx=>{
+    async saveEvent(e,template){
+      e=await packPhoto(e);
+      return write(async tx=>{
       const ws=await current(tx);
       if(e._scope)ensureScope(ws,e._scope);
       const key=eventKey(e)||uuid();
@@ -150,7 +177,7 @@ export async function openJournal(databaseName='xiaomoli-pages:' + new URL('./',
         const prior=items.find(r=>r.kind==='catalog'&&!r.deleted && r.value.type===template.type && r.value.item===template.item.trim());
         await journalWrite(tx,ws,'catalog',prior?.key || uuid(),{...productValue(template),item:template.item.trim()});
       }
-      return present(row);
+      return unpackPhoto(present(row));
     });},
     removeEvent(id,revision,expectedScope){return write(async tx=>{
       const ws=await current(tx);if(expectedScope)ensureScope(ws,expectedScope);
@@ -160,14 +187,16 @@ export async function openJournal(databaseName='xiaomoli-pages:' + new URL('./',
       const removed=present(row);
       const tombstone=await journalWrite(tx,ws,'event',id,null,'delete');
       removed.undoRevision=tombstone.localRevision;
-      return removed;
+      return unpackPhoto(removed);
     });},
-    restoreEvent(removed){return write(async tx=>{
+    async restoreEvent(removed){
+      removed=await packPhoto(removed);
+      return write(async tx=>{
       const ws=await current(tx);ensureScope(ws,removed._scope);
       const key=eventKey(removed),row=await get(tx,DOCS,compound(ws.scope,'event',key));
       if(!row?.deleted || row.localRevision!==removed.undoRevision)throw new Error('这条记录已再次变动，无法撤销');
       const value=productValue(removed);delete value.undoRevision;
-      return present(await journalWrite(tx,ws,'event',key,value,'restore'));
+      return unpackPhoto(present(await journalWrite(tx,ws,'event',key,value,'restore')));
     });},
     saveProfile(profile){return write(async tx=>{
       const ws=await current(tx);if(profile._scope)ensureScope(ws,profile._scope);
@@ -207,7 +236,7 @@ export async function openJournal(databaseName='xiaomoli-pages:' + new URL('./',
       const row=await get(tx,DOCS,compound(scope,state.kind,state.docKey));
       if(!row)return null;
       await put(tx,META,{...state,id,inflight:state.mutationId});
-      return {...copyForRemote(row),mutationId:state.mutationId};
+      return unpackDoc({...copyForRemote(row),mutationId:state.mutationId});
     },false);},
     ackGit(scope,entry,mutationId,id,sha){return write(async tx=>{
       ensureScope(await current(tx),scope);
@@ -218,7 +247,9 @@ export async function openJournal(databaseName='xiaomoli-pages:' + new URL('./',
         mutationId:state.mutationId===mutationId?null:state.mutationId});
       return true;
     },false);},
-    receiveGit(scope,id,sha,doc,expectedSha,expectedConflict){return write(async tx=>{
+    async receiveGit(scope,id,sha,doc,expectedSha,expectedConflict){
+      doc=await packDoc(doc);
+      return write(async tx=>{
       ensureScope(await current(tx),scope);
       const key=gitKey(scope,doc.kind,doc.key), previous=await get(tx,META,key);
       if(previous?.sha===sha || previous?.conflictSha===sha)return false;
@@ -270,7 +301,9 @@ export async function openJournal(databaseName='xiaomoli-pages:' + new URL('./',
       await request(tx.objectStore(META).delete(conflictKey(key)));
     });},
     legacyImported(){return read(async tx=>!!(await get(tx,META,'legacy:github-v2')));},
-    finishLegacyImport(source,actor){return write(async tx=>{
+    async finishLegacyImport(source,actor){
+      source=await packBackup(source);
+      return write(async tx=>{
       const marker='legacy:github-v2';
       if(await get(tx,META,marker))return {added:0,skipped:0};
       const ws=await current(tx);
@@ -284,7 +317,9 @@ export async function openJournal(databaseName='xiaomoli-pages:' + new URL('./',
       await put(tx,META,{key:marker});
       return result;
     });},
-    importBackup(source,expectedScope){return write(async tx=>{
+    async importBackup(source,expectedScope){
+      source=await packBackup(source);
+      return write(async tx=>{
       const ws=await current(tx);if(expectedScope)ensureScope(ws,expectedScope);
       return merge(tx,ws,source);
     });},
