@@ -1,0 +1,11 @@
+{
+  "name": "小茉莉日记",
+  "short_name": "小茉莉日记",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f4ee",
+  "theme_color": "#f5f4ee",
+  "lang": "zh-CN",
+  "icons": []
+}
